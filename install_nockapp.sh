@@ -57,15 +57,16 @@ sleep 1
 echo -e "${YELLOW}Installing system dependencies...${NC}"
 sudo apt-get update -qq &
 spinner
-sudo apt-get install -y clang llvm &> /dev/null &
+sudo apt-get install -y clang llvm libclang-dev &> /dev/null &  # Installing clang and libclang-dev
 spinner
 echo -e "${GREEN}Dependencies installed successfully!${NC}"
 sleep 1
 
 # Step 3: Set LIBCLANG_PATH for environment setup
-echo -e "${YELLOW}Configuring environment variables...${NC}"
-export LIBCLANG_PATH=/usr/lib/llvm-10/lib
+echo -e "${YELLOW}Configuring environment variables for libclang...${NC}"
+export LIBCLANG_PATH=$(llvm-config --libdir)   # Auto-detect the correct libclang path
 export CC=clang
+echo -e "${GREEN}LIBCLANG_PATH set to: $LIBCLANG_PATH${NC}"
 sleep 1
 
 # Step 4: Check if the nockapp directory exists, and remove it if necessary
