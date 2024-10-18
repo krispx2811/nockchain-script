@@ -1,14 +1,9 @@
 #!/bin/bash
 
-# Define colors and gradients for an appealing output
-RED='\033[38;5;196m'
+# Define colors for a sleek look
+PINK='\033[38;5;205m'
 ORANGE='\033[38;5;214m'
-YELLOW='\033[38;5;226m'
-GREEN='\033[38;5;118m'
-CYAN='\033[38;5;44m'
-BLUE='\033[38;5;27m'
-MAGENTA='\033[38;5;200m'
-WHITE='\033[1;37m'
+RED='\033[38;5;196m'
 BOLD='\033[1m'
 NC='\033[0m'  # No Color
 
@@ -20,7 +15,7 @@ spinner() {
     tput civis  # hide cursor
     while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
         for i in $(seq 0 ${#spinstr}); do
-            echo -ne "${CYAN}${spinstr:i:1}${NC}"
+            echo -ne "${PINK}${spinstr:i:1}${NC}"
             sleep $delay
             echo -ne "\r"
         done
@@ -28,19 +23,19 @@ spinner() {
     tput cnorm  # show cursor
 }
 
-# Welcome message with gradient and emojis 🚀🎉
-echo -e "${RED}${BOLD}"
+# Welcome message with a sleek, minimal look 🚀🎉
+echo -e "${PINK}${BOLD}"
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║             🚀 WELCOME TO THE NOCKAPP INSTALLER 🚀        ║"
 echo "╠══════════════════════════════════════════════════════════╣"
-echo "║ ${ORANGE}The installation script designed with precision     ${RED}║"
-echo "║ ${YELLOW}       and made for a superior experience.        ${RED}║"
+echo "║         The installation script designed with care        ║"
+echo "║            and made for a superior experience.            ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 sleep 1
 
 # Prompt to begin
-echo -e "${BLUE}Press [ENTER] to begin the ${BOLD}elegant installation${NC} ${CYAN}✨...${NC}"
+echo -e "${ORANGE}Press [ENTER] to begin the elegant installation ✨...${NC}"
 read
 
 # Step 1: Check if Cargo is installed 🚀
@@ -51,32 +46,32 @@ if ! command -v cargo &> /dev/null; then
     spinner
     source "$HOME/.cargo/env"
 else
-    echo -e "${GREEN}✔️  Cargo is already installed.${NC}"
+    echo -e "${PINK}✔️  Cargo is already installed.${NC}"
 fi
 sleep 1
 
 # Step 2: Install system dependencies 🛠️
-echo -e "${YELLOW}🛠️  Installing system dependencies...${NC}"
+echo -e "${ORANGE}🛠️  Installing system dependencies...${NC}"
 sudo apt-get update -qq &
 spinner
 sudo apt-get install -y clang llvm libclang-dev &> /dev/null &  # Installing clang and libclang-dev
 spinner
-echo -e "${GREEN}✔️  Dependencies installed successfully!${NC}"
+echo -e "${PINK}✔️  Dependencies installed successfully!${NC}"
 sleep 1
 
 # Step 3: Set LIBCLANG_PATH for environment setup 🌍
-echo -e "${CYAN}🌍 Configuring environment variables for libclang...${NC}"
+echo -e "${ORANGE}🌍 Configuring environment variables for libclang...${NC}"
 export LIBCLANG_PATH=$(llvm-config --libdir)   # Auto-detect the correct libclang path
 export CC=clang
-echo -e "${GREEN}✔️  LIBCLANG_PATH set to: $LIBCLANG_PATH${NC}"
+echo -e "${PINK}✔️  LIBCLANG_PATH set to: $LIBCLANG_PATH${NC}"
 sleep 1
 
 # Step 4: Check if the nockapp directory exists, and remove it if necessary
 if [ -d "nockapp" ]; then
-    echo -e "${YELLOW}⚠️  The 'nockapp' directory already exists. Removing it...${NC}"
+    echo -e "${ORANGE}⚠️  The 'nockapp' directory already exists. Removing it...${NC}"
     rm -rf nockapp
     if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✔️  'nockapp' directory removed successfully.${NC}"
+        echo -e "${PINK}✔️  'nockapp' directory removed successfully.${NC}"
     else
         echo -e "${RED}⚠️  Error removing 'nockapp' directory. Please check your permissions.${NC}"
         exit 1
@@ -84,7 +79,7 @@ if [ -d "nockapp" ]; then
 fi
 
 # Step 5: Clone the GitHub repository 🌐
-echo -e "${BLUE}🌐 Cloning the NockApp repository...${NC}"
+echo -e "${ORANGE}🌐 Cloning the NockApp repository...${NC}"
 git clone --depth=1 https://github.com/zorp-corp/nockapp.git &> /dev/null &
 spinner
 cd nockapp
@@ -95,7 +90,7 @@ CARGO_FILE=$(find . -name Cargo.toml | head -n 1)
 # If Cargo.toml is found, navigate to the correct directory
 if [ -n "$CARGO_FILE" ]; then
     DIR=$(dirname "$CARGO_FILE")
-    echo -e "${GREEN}✔️  Found Cargo.toml in: $DIR${NC}"
+    echo -e "${PINK}✔️  Found Cargo.toml in: $DIR${NC}"
     cd "$DIR"
 else
     echo -e "${RED}⚠️  Error: Cargo.toml not found. Please check the repository structure.${NC}"
@@ -103,28 +98,30 @@ else
 fi
 
 # Step 6: Build the project using Cargo 🔨
-echo -e "${YELLOW}🔨 Building NockApp...${NC}"
+echo -e "${ORANGE}🔨 Building NockApp...${NC}"
 cargo build --release &> /dev/null &
 spinner
-echo -e "${GREEN}✔️  NockApp built successfully!${NC}"
+echo -e "${PINK}✔️  NockApp built successfully!${NC}"
 sleep 1
 
 # Step 7: Detect and run the correct binary 🚀
-echo -e "${CYAN}🚀 Detecting the correct binary to run...${NC}"
+echo -e "${ORANGE}🚀 Detecting the correct binary to run...${NC}"
 if [ -f "./target/release/choo" ]; then
-    echo -e "${GREEN}✔️  'choo' binary found. Running it now...${NC}"
+    echo -e "${PINK}✔️  'choo' binary found. Running it now...${NC}"
     cargo run --release --bin choo hoon/lib/kernel.hoon &
 elif [ -f "./target/release/http-app" ]; then
-    echo -e "${YELLOW}⚠️  'choo' binary not found. Running 'http-app' without arguments...${NC}"
+    echo -e "${ORANGE}⚠️  'choo' binary not found. Running 'http-app' without arguments...${NC}"
     cargo run --release --bin http-app &
 else
-    echo -e "${RED}⚠️  Neither 'choo' nor 'http-app' binaries found. Exiting.${NC}"
+    echo -e "${RED}⚠️  Neither 'choo' nor 'http-app' binaries found. Checking possible errors in the build...${NC}"
+    echo -e "${ORANGE}🔍 Checking if the build produced any binaries in ./target/release...${NC}"
+    ls ./target/release
     exit 1
 fi
 spinner
 
 # Final thank you message with style 🎉
-echo -e "${MAGENTA}${BOLD}"
+echo -e "${PINK}${BOLD}"
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║  🎉 THANK YOU FOR INSTALLING AND RUNNING NOCKAPP! 🎉    ║"
 echo "║  This process was brought to you with unmatched quality. ║"
