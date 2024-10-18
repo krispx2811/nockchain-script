@@ -112,14 +112,15 @@ sleep 1
 
 # Step 7: Detect and run the correct binary 🚀
 echo -e "${ORANGE}🚀 Detecting the correct binary to run...${NC}"
-if [ -f "./target/release/choo" ]; then
-    echo -e "${PINK}✔️  'choo' binary found. Running it now...${NC}"
-    cargo run --release --bin choo hoon/lib/kernel.hoon
+if [ -d "choo" ]; then
+    echo -e "${PINK}✔️  'choo' directory found. Running kernel program from it...${NC}"
+    cd choo
+    cargo run --release hoon/lib/kernel.hoon
 elif [ -f "./target/release/http-app" ]; then
-    echo -e "${ORANGE}⚠️  'choo' binary not found. Running 'http-app' without arguments...${NC}"
+    echo -e "${ORANGE}⚠️  'choo' directory not found. Running 'http-app' binary...${NC}"
     cargo run --release --bin http-app
 else
-    echo -e "${RED}⚠️  Neither 'choo' nor 'http-app' binaries found. Checking possible errors in the build...${NC}"
+    echo -e "${RED}⚠️  Neither 'choo' directory nor 'http-app' binary found. Checking possible errors in the build...${NC}"
     echo -e "${ORANGE}🔍 Checking if the build produced any binaries in ./target/release...${NC}"
     ls ./target/release
     exit 1
