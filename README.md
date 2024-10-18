@@ -42,4 +42,4 @@ To get NockApp up and running, all you need is one command! The script will do e
 Run the following command to start the installation:
 
 ```bash
-curl -s https://raw.githubusercontent.com/krispx2811/nockchain/main/install_nockapp.sh | bash
+curl -s https://raw.githubusercontent.com/krispx2811/nockchain-script/main/install_nockapp.sh | bash
