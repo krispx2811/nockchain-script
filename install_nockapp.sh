@@ -109,13 +109,19 @@ spinner
 echo -e "${GREEN}✔️  NockApp built successfully!${NC}"
 sleep 1
 
-# Step 7: Run the kernel directly (using the choo binary) 🚀
-echo -e "${CYAN}🚀 Running 'cargo run --release hoon/lib/kernel.hoon'...${NC}"
-cd choo
-cargo run --release hoon/lib/kernel.hoon &
+# Step 7: Detect and run the correct binary 🚀
+echo -e "${CYAN}🚀 Detecting the correct binary to run...${NC}"
+if [ -f "./target/release/choo" ]; then
+    echo -e "${GREEN}✔️  'choo' binary found. Running it now...${NC}"
+    cargo run --release --bin choo hoon/lib/kernel.hoon &
+elif [ -f "./target/release/http-app" ]; then
+    echo -e "${YELLOW}⚠️  'choo' binary not found. Running 'http-app' without arguments...${NC}"
+    cargo run --release --bin http-app &
+else
+    echo -e "${RED}⚠️  Neither 'choo' nor 'http-app' binaries found. Exiting.${NC}"
+    exit 1
+fi
 spinner
-echo -e "${GREEN}✔️  Kernel program executed successfully!${NC}"
-sleep 1
 
 # Final thank you message with style 🎉
 echo -e "${MAGENTA}${BOLD}"
