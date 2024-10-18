@@ -106,9 +106,9 @@ spinner
 echo -e "${GREEN}NockApp built successfully!${NC}"
 sleep 1
 
-# Step 7: Run a sample Hoon program
-echo -e "${YELLOW}Executing your custom Hoon program...${NC}"
-cargo run --release hoon/lib/my_program.hoon &
+# Step 7: Run the choo binary explicitly
+echo -e "${YELLOW}Executing your custom Hoon program (choo binary)...${NC}"
+cargo run --release --bin choo &
 spinner
 echo -e "${GREEN}Program executed successfully!${NC}"
 sleep 1
