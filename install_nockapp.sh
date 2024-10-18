@@ -115,6 +115,7 @@ echo -e "${ORANGE}🚀 Detecting the correct binary to run...${NC}"
 if [ -d "choo" ]; then
     echo -e "${PINK}✔️  'choo' directory found. Running kernel program from it...${NC}"
     cd choo
+    echo -e "${PINK}Executing: cargo run --release hoon/lib/kernel.hoon${NC}"
     cargo run --release hoon/lib/kernel.hoon
 elif [ -f "./target/release/http-app" ]; then
     echo -e "${ORANGE}⚠️  'choo' directory not found. Running 'http-app' binary...${NC}"
