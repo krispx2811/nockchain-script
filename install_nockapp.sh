@@ -42,7 +42,7 @@ read
 echo -e "${ORANGE}🚀 Checking for Cargo...${NC}"
 if ! command -v cargo &> /dev/null; then
     echo -e "${RED}⚠️  Cargo not found! Installing Rust and Cargo...${NC}"
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y &> /dev/null &
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y &
     spinner
     source "$HOME/.cargo/env"
 else
@@ -54,7 +54,7 @@ sleep 1
 echo -e "${ORANGE}🛠️  Installing system dependencies...${NC}"
 sudo apt-get update -qq &
 spinner
-sudo apt-get install -y clang llvm libclang-dev &> /dev/null &  # Installing clang and libclang-dev
+sudo apt-get install -y clang llvm libclang-dev &  # Installing clang and libclang-dev
 spinner
 echo -e "${PINK}✔️  Dependencies installed successfully!${NC}"
 sleep 1
@@ -80,8 +80,11 @@ fi
 
 # Step 5: Clone the GitHub repository 🌐
 echo -e "${ORANGE}🌐 Cloning the NockApp repository...${NC}"
-git clone --depth=1 https://github.com/zorp-corp/nockapp.git &> /dev/null &
-spinner
+git clone --depth=1 https://github.com/zorp-corp/nockapp.git
+if [ $? -ne 0 ]; then
+    echo -e "${RED}⚠️  Failed to clone the repository. Please check the URL.${NC}"
+    exit 1
+fi
 cd nockapp
 
 # Enhanced Search for Cargo.toml 📂
@@ -99,8 +102,11 @@ fi
 
 # Step 6: Build the project using Cargo 🔨
 echo -e "${ORANGE}🔨 Building NockApp...${NC}"
-cargo build --release &> /dev/null &
-spinner
+cargo build --release
+if [ $? -ne 0 ]; then
+    echo -e "${RED}⚠️  Build failed. Please check the error messages above.${NC}"
+    exit 1
+fi
 echo -e "${PINK}✔️  NockApp built successfully!${NC}"
 sleep 1
 
@@ -108,17 +114,16 @@ sleep 1
 echo -e "${ORANGE}🚀 Detecting the correct binary to run...${NC}"
 if [ -f "./target/release/choo" ]; then
     echo -e "${PINK}✔️  'choo' binary found. Running it now...${NC}"
-    cargo run --release --bin choo hoon/lib/kernel.hoon &
+    cargo run --release --bin choo hoon/lib/kernel.hoon
 elif [ -f "./target/release/http-app" ]; then
     echo -e "${ORANGE}⚠️  'choo' binary not found. Running 'http-app' without arguments...${NC}"
-    cargo run --release --bin http-app &
+    cargo run --release --bin http-app
 else
     echo -e "${RED}⚠️  Neither 'choo' nor 'http-app' binaries found. Checking possible errors in the build...${NC}"
     echo -e "${ORANGE}🔍 Checking if the build produced any binaries in ./target/release...${NC}"
     ls ./target/release
     exit 1
 fi
-spinner
 
 # Final thank you message with style 🎉
 echo -e "${PINK}${BOLD}"
