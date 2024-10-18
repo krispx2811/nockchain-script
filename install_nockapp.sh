@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Define colors for a polished output
+# Define colors for the most professional output experience
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
@@ -26,7 +26,7 @@ spinner() {
     tput cnorm  # show cursor
 }
 
-# Title screen
+# Professional title screen with animation
 echo -e "${MAGENTA}${BOLD}"
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║             WELCOME TO THE NOCKAPP INSTALLER             ║"
@@ -41,7 +41,7 @@ sleep 1
 echo -e "${CYAN}Press [ENTER] to begin the elegant installation...${NC}"
 read
 
-# Step 1: Check for Cargo installation
+# Step 1: Check if Cargo is installed
 echo -e "${YELLOW}Checking for Cargo...${NC}"
 if ! command -v cargo &> /dev/null; then
     echo -e "${RED}Cargo not found! Installing Rust and Cargo...${NC}"
@@ -62,7 +62,7 @@ spinner
 echo -e "${GREEN}Dependencies installed successfully!${NC}"
 sleep 1
 
-# Step 3: Set environment variables
+# Step 3: Set LIBCLANG_PATH for advanced environment setup
 echo -e "${YELLOW}Configuring environment variables...${NC}"
 export LIBCLANG_PATH=/usr/lib/llvm-10/lib
 export CC=clang
@@ -74,9 +74,14 @@ git clone --depth=1 https://github.com/zorp-corp/nockapp.git &> /dev/null &
 spinner
 cd nockapp
 
-# Check if Cargo.toml exists
-if [ ! -f Cargo.toml ]; then
-    echo -e "${RED}Error: Cargo.toml not found in the cloned repository. Please check the repository structure.${NC}"
+# Check if Cargo.toml exists in the root or a subdirectory
+if [ -f Cargo.toml ]; then
+    echo -e "${GREEN}Found Cargo.toml in the root directory!${NC}"
+elif [ -f nockapp/Cargo.toml ]; then
+    echo -e "${GREEN}Found Cargo.toml in the 'nockapp' subdirectory.${NC}"
+    cd nockapp
+else
+    echo -e "${RED}Error: Cargo.toml not found. Please check the repository structure.${NC}"
     exit 1
 fi
 
@@ -90,14 +95,14 @@ spinner
 echo -e "${GREEN}NockApp built successfully!${NC}"
 sleep 1
 
-# Step 6: Run a sample Hoon program
+# Step 6: Run a sample Hoon program, flawless execution
 echo -e "${YELLOW}Executing your custom Hoon program...${NC}"
 cargo run --release hoon/lib/my_program.hoon &
 spinner
 echo -e "${GREEN}Program executed successfully!${NC}"
 sleep 1
 
-# Final thank you message
+# Final thank you message with style and elegance
 echo -e "${MAGENTA}${BOLD}"
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║        THANK YOU FOR INSTALLING AND RUNNING NOCKAPP!     ║"
@@ -107,5 +112,5 @@ echo "║    Feel free to explore, contribute, and grow with us!   ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# Optional terminal bell sound to indicate completion
+# Play terminal bell sound to indicate completion (optional)
 echo -en "\007"
