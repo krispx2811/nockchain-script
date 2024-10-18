@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Define colors for the most professional output experience
+# Define colors for professional output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
@@ -26,7 +26,7 @@ spinner() {
     tput cnorm  # show cursor
 }
 
-# Professional title screen with animation
+# Welcome message with professional title screen
 echo -e "${MAGENTA}${BOLD}"
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║             WELCOME TO THE NOCKAPP INSTALLER             ║"
@@ -62,47 +62,58 @@ spinner
 echo -e "${GREEN}Dependencies installed successfully!${NC}"
 sleep 1
 
-# Step 3: Set LIBCLANG_PATH for advanced environment setup
+# Step 3: Set LIBCLANG_PATH for environment setup
 echo -e "${YELLOW}Configuring environment variables...${NC}"
 export LIBCLANG_PATH=/usr/lib/llvm-10/lib
 export CC=clang
 sleep 1
 
-# Step 4: Clone the GitHub repository
-echo -e "${YELLOW}Cloning the NockApp repository with precision...${NC}"
+# Step 4: Check if the nockapp directory exists, and remove it if necessary
+if [ -d "nockapp" ]; then
+    echo -e "${YELLOW}The 'nockapp' directory already exists. Removing it...${NC}"
+    rm -rf nockapp
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}'nockapp' directory removed successfully.${NC}"
+    else
+        echo -e "${RED}Error removing 'nockapp' directory. Please check your permissions.${NC}"
+        exit 1
+    fi
+fi
+
+# Step 5: Clone the GitHub repository
+echo -e "${YELLOW}Cloning the NockApp repository...${NC}"
 git clone --depth=1 https://github.com/zorp-corp/nockapp.git &> /dev/null &
 spinner
 cd nockapp
 
-# Check if Cargo.toml exists in the root or a subdirectory
-if [ -f Cargo.toml ]; then
-    echo -e "${GREEN}Found Cargo.toml in the root directory!${NC}"
-elif [ -f nockapp/Cargo.toml ]; then
-    echo -e "${GREEN}Found Cargo.toml in the 'nockapp' subdirectory.${NC}"
-    cd nockapp
+# Enhanced Search for Cargo.toml
+CARGO_FILE=$(find . -name Cargo.toml | head -n 1)
+
+# If Cargo.toml is found, navigate to the correct directory
+if [ -n "$CARGO_FILE" ]; then
+    DIR=$(dirname "$CARGO_FILE")
+    echo -e "${GREEN}Found Cargo.toml in: $DIR${NC}"
+    cd "$DIR"
 else
     echo -e "${RED}Error: Cargo.toml not found. Please check the repository structure.${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}Repository cloned and verified!${NC}"
-sleep 1
-
-# Step 5: Build the project using Cargo
-echo -e "${YELLOW}Building NockApp with a smooth and optimized process...${NC}"
+# Step 6: Build the project using Cargo
+echo -e "${YELLOW}Building NockApp...${NC}"
 cargo build --release &> /dev/null &
 spinner
 echo -e "${GREEN}NockApp built successfully!${NC}"
 sleep 1
 
-# Step 6: Run a sample Hoon program, flawless execution
+# Step 7: Run a sample Hoon program
 echo -e "${YELLOW}Executing your custom Hoon program...${NC}"
 cargo run --release hoon/lib/my_program.hoon &
 spinner
 echo -e "${GREEN}Program executed successfully!${NC}"
 sleep 1
 
-# Final thank you message with style and elegance
+# Final thank you message with style
 echo -e "${MAGENTA}${BOLD}"
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║        THANK YOU FOR INSTALLING AND RUNNING NOCKAPP!     ║"
@@ -112,5 +123,5 @@ echo "║    Feel free to explore, contribute, and grow with us!   ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# Play terminal bell sound to indicate completion (optional)
+# Optional terminal bell sound to indicate completion
 echo -en "\007"
