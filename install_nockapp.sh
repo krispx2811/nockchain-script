@@ -107,11 +107,12 @@ spinner
 echo -e "${GREEN}NockApp built successfully!${NC}"
 sleep 1
 
-# Step 7: Run the choo binary explicitly using --bin flag
-echo -e "${YELLOW}Executing the 'choo' binary...${NC}"
-cargo run --release --bin choo &
+# Step 7: Run the kernel directly (using the choo binary)
+echo -e "${YELLOW}Running 'cargo run --release hoon/lib/kernel.hoon'...${NC}"
+cd choo
+cargo run --release hoon/lib/kernel.hoon &
 spinner
-echo -e "${GREEN}'choo' binary executed successfully!${NC}"
+echo -e "${GREEN}Kernel program executed successfully!${NC}"
 sleep 1
 
 # Final thank you message with style
