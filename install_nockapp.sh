@@ -282,7 +282,7 @@ build_project() {
     if [ -f "./target/release/http-app" ] || [ -d "./choo" ]; then
         complete_progress "NockApp built successfully."
     else
-        print_message "$RED" "❌  Build completed but binaries not found. Check build logs for details."
+        print_message "$RED" "❌  Build completed but binaries not found. Check build.log for details."
         exit 1
     fi
 }
@@ -348,7 +348,7 @@ check_and_create_project_structure
 
 # Install Project Dependencies
 print_message "$ORANGE" "📦 Installing project dependencies..."
-cargo install --path . &> install.log
+cargo build --release &> install.log
 handle_error $? "Installing project dependencies"
 complete_progress "Project dependencies installed successfully."
 
