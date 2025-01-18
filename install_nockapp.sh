@@ -4,7 +4,7 @@
 # NockApp Installer Script
 # ============================================================
 # This script installs NockApp along with all its dependencies.
-# It provides detailed progress indicators and handles
+# It provides clear progress indicators and handles
 # dependency management automatically.
 # ============================================================
 
@@ -29,21 +29,16 @@ print_message() {
 }
 
 # ----------------------------
-# Function: Show Progress Bar
+# Function: Display Progress Bar
 # ----------------------------
-show_progress() {
-    local duration=${1:-2}  # Default duration is 2 seconds
-    local interval=0.1
-    local total_steps=$(echo "$duration / $interval" | bc)
-    local step=0
-
-    echo -n "["
-    while [ $step -lt $total_steps ]; do
-        echo -n "#"
-        sleep $interval
-        step=$((step + 1))
-    done
-    echo "]"
+complete_progress() {
+    local task="$1"
+    local bar_length=50
+    local filled_length=$bar_length
+    local empty_length=$((bar_length - filled_length))
+    local filled_bar=$(printf "%0.s#" $(seq 1 $filled_length))
+    local empty_bar=$(printf "%0.s " $(seq 1 $empty_length))
+    printf "[%s%s] 100%% %s\n" "$filled_bar" "$empty_bar" "$task"
 }
 
 # ----------------------------
@@ -51,6 +46,7 @@ show_progress() {
 # ----------------------------
 install_dependencies() {
     local dependencies=("git" "cargo" "curl" "wget" "tput" "build-essential")
+    missing_deps=()
 
     print_message "$ORANGE" "🔍 Checking for required dependencies..."
 
@@ -70,21 +66,27 @@ install_dependencies() {
             case "$dep" in
                 git)
                     install_git
+                    complete_progress "Git installed successfully."
                     ;;
                 cargo)
                     install_rust
+                    complete_progress "Rust and Cargo installed successfully."
                     ;;
                 curl)
                     install_curl
+                    complete_progress "curl installed successfully."
                     ;;
                 wget)
                     install_wget
+                    complete_progress "wget installed successfully."
                     ;;
                 tput)
                     install_tput
+                    complete_progress "tput installed successfully."
                     ;;
                 build-essential)
                     install_build_essential
+                    complete_progress "build-essential installed successfully."
                     ;;
                 *)
                     print_message "$RED" "❌  Unknown dependency: $dep"
@@ -107,8 +109,6 @@ install_git() {
         print_message "$RED" "❌  Unsupported OS for automatic Git installation."
         exit 1
     fi
-    show_progress 1
-    print_message "$GREEN" "✔️  Git installed successfully."
 }
 
 # ----------------------------
@@ -118,8 +118,6 @@ install_rust() {
     print_message "$BLUE" "🚀 Installing Rust and Cargo..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     source "$HOME/.cargo/env"
-    show_progress 3
-    print_message "$GREEN" "✔️  Rust and Cargo installed successfully."
 }
 
 # ----------------------------
@@ -135,8 +133,6 @@ install_curl() {
         print_message "$RED" "❌  Unsupported OS for automatic curl installation."
         exit 1
     fi
-    show_progress 1
-    print_message "$GREEN" "✔️  curl installed successfully."
 }
 
 # ----------------------------
@@ -152,8 +148,6 @@ install_wget() {
         print_message "$RED" "❌  Unsupported OS for automatic wget installation."
         exit 1
     fi
-    show_progress 1
-    print_message "$GREEN" "✔️  wget installed successfully."
 }
 
 # ----------------------------
@@ -169,8 +163,6 @@ install_tput() {
         print_message "$RED" "❌  Unsupported OS for automatic tput installation."
         exit 1
     fi
-    show_progress 1
-    print_message "$GREEN" "✔️  tput installed successfully."
 }
 
 # ----------------------------
@@ -186,25 +178,6 @@ install_build_essential() {
         print_message "$RED" "❌  Unsupported OS for automatic build-essential installation."
         exit 1
     fi
-    show_progress 2
-    print_message "$GREEN" "✔️  build-essential installed successfully."
-}
-
-# ----------------------------
-# Function: Spinner for Long Operations
-# ----------------------------
-spinner() {
-    local pid=$1
-    local delay=0.1
-    local spinstr='|/-\'
-    tput civis  # Hide cursor
-    while [ -d /proc/"$pid" ]; do
-        for char in $spinstr; do
-            echo -ne "${PINK}${char}${NC} \r"
-            sleep $delay
-        done
-    done
-    tput cnorm  # Show cursor
 }
 
 # ----------------------------
@@ -230,8 +203,6 @@ path = "src/bin/choo.rs"
 name = "http-app"
 path = "src/bin/http_app.rs"
 EOL
-    show_progress 1
-    print_message "$GREEN" "✔️  Cargo.toml created successfully."
 }
 
 # ----------------------------
@@ -242,7 +213,7 @@ check_and_create_project_structure() {
 
     if [ ! -d "src/bin" ]; then
         mkdir -p src/bin
-        print_message "$GREEN" "✔️  Created directory src/bin."
+        complete_progress "Created directory src/bin."
     fi
 
     if [ ! -f "src/bin/choo.rs" ]; then
@@ -252,8 +223,7 @@ fn main() {
     println!("Running the NockApp Choo binary...");
 }
 EOL
-        show_progress 1
-        print_message "$GREEN" "✔️  choo.rs created successfully."
+        complete_progress "choo.rs created successfully."
     fi
 
     if [ ! -f "src/bin/http_app.rs" ]; then
@@ -263,8 +233,7 @@ fn main() {
     println!("Running the NockApp HTTP App binary...");
 }
 EOL
-        show_progress 1
-        print_message "$GREEN" "✔️  http_app.rs created successfully."
+        complete_progress "http_app.rs created successfully."
     fi
 }
 
@@ -273,14 +242,12 @@ EOL
 # ----------------------------
 clone_repository() {
     print_message "$ORANGE" "🌐 Cloning the NockApp repository..."
-    git clone --depth=1 https://github.com/zorp-corp/nockapp.git &> /dev/null &
-    spinner $!
+    git clone --depth=1 https://github.com/zorp-corp/nockapp.git &> /dev/null
     if [ $? -ne 0 ]; then
         print_message "$RED" "❌  Failed to clone repository. Please check your internet connection and try again."
         exit 1
     fi
-    show_progress 2
-    print_message "$GREEN" "✔️  Repository cloned successfully."
+    complete_progress "Repository cloned successfully."
 }
 
 # ----------------------------
@@ -288,20 +255,17 @@ clone_repository() {
 # ----------------------------
 build_project() {
     print_message "$ORANGE" "🔨 Building NockApp..."
-    cargo build --release &> /dev/null &
-    spinner $!
+    cargo build --release &> /dev/null
     if [ $? -ne 0 ]; then
         print_message "$RED" "⚠️  Build failed! Attempting to clean and rebuild..."
-        cargo clean
-        cargo build --release &> /dev/null &
-        spinner $!
+        cargo clean &> /dev/null
+        cargo build --release &> /dev/null
         if [ $? -ne 0 ]; then
             print_message "$RED" "❌  Rebuild failed. Please check the build logs for more details."
             exit 1
         fi
     fi
-    show_progress 2
-    print_message "$GREEN" "✔️  NockApp built successfully."
+    complete_progress "NockApp built successfully."
 }
 
 # ----------------------------
@@ -311,18 +275,23 @@ run_nockapp() {
     print_message "$ORANGE" "🚀 Running the NockApp binary..."
 
     if [ -d "choo" ]; then
-        cd choo || exit
-        cargo run --release hoon/lib/kernel.hoon &> /dev/null &
-        spinner $!
+        cd choo || { print_message "$RED" "❌  Failed to navigate to choo directory."; exit 1; }
+        cargo run --release hoon/lib/kernel.hoon &> /dev/null
+        if [ $? -ne 0 ]; then
+            print_message "$RED" "❌  Failed to run the Choo binary."
+            exit 1
+        fi
     elif [ -f "./target/release/http-app" ]; then
-        ./target/release/http-app &> /dev/null &
-        spinner $!
+        ./target/release/http-app &> /dev/null
+        if [ $? -ne 0 ]; then
+            print_message "$RED" "❌  Failed to run the HTTP-App binary."
+            exit 1
+        fi
     else
         print_message "$RED" "⚠️  Neither 'choo' directory nor 'http-app' binary found."
         exit 1
     fi
-    show_progress 2
-    print_message "$GREEN" "✔️  NockApp is now running."
+    complete_progress "NockApp is now running."
 }
 
 # ----------------------------
@@ -330,7 +299,7 @@ run_nockapp() {
 # ----------------------------
 
 # Welcome Message
-print_message "$PINK" "🚀 ${BOLD}WELCOME TO THE NOCKAPP INSTALLER 🚀${NC}"
+print_message "$PINK" "${BOLD}🚀 WELCOME TO THE NOCKAPP INSTALLER 🚀${NC}"
 
 # Install Dependencies
 install_dependencies
@@ -339,8 +308,11 @@ install_dependencies
 if [ -d "nockapp" ]; then
     print_message "$ORANGE" "🗑️  Removing existing nockapp directory..."
     rm -rf nockapp
-    show_progress 1
-    print_message "$GREEN" "✔️  Old nockapp directory removed."
+    if [ $? -ne 0 ]; then
+        print_message "$RED" "❌  Failed to remove existing nockapp directory."
+        exit 1
+    fi
+    complete_progress "Old nockapp directory removed."
 fi
 
 # Clone the Repository
@@ -352,6 +324,7 @@ cd nockapp || { print_message "$RED" "❌  Failed to navigate to nockapp directo
 # Create Cargo.toml if Missing or Empty
 if [ ! -f "Cargo.toml" ] || [ ! -s "Cargo.toml" ]; then
     create_cargo_toml
+    complete_progress "Cargo.toml created successfully."
 fi
 
 # Check and Create Project Structure
@@ -359,14 +332,12 @@ check_and_create_project_structure
 
 # Install Project Dependencies
 print_message "$ORANGE" "📦 Installing project dependencies..."
-cargo install --path . &> /dev/null &
-spinner $!
+cargo install --path . &> /dev/null
 if [ $? -ne 0 ]; then
     print_message "$RED" "❌  Failed to install project dependencies."
     exit 1
 fi
-show_progress 2
-print_message "$GREEN" "✔️  Project dependencies installed successfully."
+complete_progress "Project dependencies installed successfully."
 
 # Build the Project
 build_project
