@@ -191,6 +191,7 @@ install_build_essential() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         sudo apt-get update && sudo apt-get install build-essential -y
     elif [[ "$OSTYPE" == "darwin"* ]]; then
+        print_message "$BLUE" "🚀 Installing Xcode Command Line Tools..."
         xcode-select --install
         handle_error $? "Installing Xcode Command Line Tools"
     else
@@ -275,14 +276,14 @@ clone_repository() {
 # ----------------------------
 build_project() {
     print_message "$ORANGE" "🔨 Building NockApp..."
-    cargo build --release &> build.log
+    cargo build --release
     handle_error $? "Building NockApp"
 
     # Check if build succeeded by verifying the binary exists
-    if [ -f "./target/release/http-app" ] || [ -d "./choo" ]; then
+    if [ -f "./target/release/http-app" ] || [ -f "./target/release/choo" ]; then
         complete_progress "NockApp built successfully."
     else
-        print_message "$RED" "❌  Build completed but binaries not found. Check build.log for details."
+        print_message "$RED" "❌  Build completed but binaries not found."
         exit 1
     fi
 }
@@ -296,12 +297,11 @@ run_nockapp() {
     if [ -f "./target/release/http-app" ]; then
         ./target/release/http-app
         handle_error $? "Running HTTP-App Binary"
-    elif [ -d "./choo" ]; then
-        cd choo || { print_message "$RED" "❌  Failed to navigate to choo directory."; exit 1; }
-        cargo run --release hoon/lib/kernel.hoon
+    elif [ -f "./target/release/choo" ]; then
+        ./target/release/choo
         handle_error $? "Running Choo Binary"
     else
-        print_message "$RED" "⚠️  Neither 'choo' directory nor 'http-app' binary found."
+        print_message "$RED" "⚠️  Neither 'http-app' nor 'choo' binary found."
         exit 1
     fi
     complete_progress "NockApp is now running."
@@ -348,9 +348,8 @@ check_and_create_project_structure
 
 # Install Project Dependencies
 print_message "$ORANGE" "📦 Installing project dependencies..."
-cargo build --release &> install.log
-handle_error $? "Installing project dependencies"
-complete_progress "Project dependencies installed successfully."
+# Note: Assuming dependencies are managed via Cargo.toml, so no additional steps here.
+# If there are specific dependency installation steps, they should be added here.
 
 # Build the Project
 build_project
