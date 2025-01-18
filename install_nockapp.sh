@@ -4,8 +4,7 @@
 # NockApp Installer Script
 # ============================================================
 # This script installs NockApp along with all its dependencies.
-# It provides clear progress indicators and handles
-# dependency management automatically.
+# It provides clear progress indicators and robust error handling.
 # ============================================================
 
 # ----------------------------
@@ -42,6 +41,18 @@ complete_progress() {
 }
 
 # ----------------------------
+# Function: Handle Errors
+# ----------------------------
+handle_error() {
+    local exit_code=$1
+    local step="$2"
+    if [ $exit_code -ne 0 ]; then
+        print_message "$RED" "❌  Error during: $step"
+        exit $exit_code
+    fi
+}
+
+# ----------------------------
 # Function: Check and Install Dependencies
 # ----------------------------
 install_dependencies() {
@@ -66,26 +77,32 @@ install_dependencies() {
             case "$dep" in
                 git)
                     install_git
+                    handle_error $? "Installing Git"
                     complete_progress "Git installed successfully."
                     ;;
                 cargo)
                     install_rust
+                    handle_error $? "Installing Rust and Cargo"
                     complete_progress "Rust and Cargo installed successfully."
                     ;;
                 curl)
                     install_curl
+                    handle_error $? "Installing curl"
                     complete_progress "curl installed successfully."
                     ;;
                 wget)
                     install_wget
+                    handle_error $? "Installing wget"
                     complete_progress "wget installed successfully."
                     ;;
                 tput)
                     install_tput
+                    handle_error $? "Installing tput"
                     complete_progress "tput installed successfully."
                     ;;
                 build-essential)
                     install_build_essential
+                    handle_error $? "Installing build-essential"
                     complete_progress "build-essential installed successfully."
                     ;;
                 *)
@@ -117,6 +134,7 @@ install_git() {
 install_rust() {
     print_message "$BLUE" "🚀 Installing Rust and Cargo..."
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    handle_error $? "Downloading Rust installer"
     source "$HOME/.cargo/env"
 }
 
@@ -174,6 +192,7 @@ install_build_essential() {
         sudo apt-get update && sudo apt-get install build-essential -y
     elif [[ "$OSTYPE" == "darwin"* ]]; then
         xcode-select --install
+        handle_error $? "Installing Xcode Command Line Tools"
     else
         print_message "$RED" "❌  Unsupported OS for automatic build-essential installation."
         exit 1
@@ -203,6 +222,7 @@ path = "src/bin/choo.rs"
 name = "http-app"
 path = "src/bin/http_app.rs"
 EOL
+    handle_error $? "Creating Cargo.toml"
 }
 
 # ----------------------------
@@ -213,6 +233,7 @@ check_and_create_project_structure() {
 
     if [ ! -d "src/bin" ]; then
         mkdir -p src/bin
+        handle_error $? "Creating directory src/bin"
         complete_progress "Created directory src/bin."
     fi
 
@@ -223,6 +244,7 @@ fn main() {
     println!("Running the NockApp Choo binary...");
 }
 EOL
+        handle_error $? "Creating choo.rs"
         complete_progress "choo.rs created successfully."
     fi
 
@@ -233,6 +255,7 @@ fn main() {
     println!("Running the NockApp HTTP App binary...");
 }
 EOL
+        handle_error $? "Creating http_app.rs"
         complete_progress "http_app.rs created successfully."
     fi
 }
@@ -243,10 +266,7 @@ EOL
 clone_repository() {
     print_message "$ORANGE" "🌐 Cloning the NockApp repository..."
     git clone --depth=1 https://github.com/zorp-corp/nockapp.git &> /dev/null
-    if [ $? -ne 0 ]; then
-        print_message "$RED" "❌  Failed to clone repository. Please check your internet connection and try again."
-        exit 1
-    fi
+    handle_error $? "Cloning Repository"
     complete_progress "Repository cloned successfully."
 }
 
@@ -255,17 +275,16 @@ clone_repository() {
 # ----------------------------
 build_project() {
     print_message "$ORANGE" "🔨 Building NockApp..."
-    cargo build --release &> /dev/null
-    if [ $? -ne 0 ]; then
-        print_message "$RED" "⚠️  Build failed! Attempting to clean and rebuild..."
-        cargo clean &> /dev/null
-        cargo build --release &> /dev/null
-        if [ $? -ne 0 ]; then
-            print_message "$RED" "❌  Rebuild failed. Please check the build logs for more details."
-            exit 1
-        fi
+    cargo build --release &> build.log
+    handle_error $? "Building NockApp"
+
+    # Check if build succeeded by verifying the binary exists
+    if [ -f "./target/release/http-app" ] || [ -d "./choo" ]; then
+        complete_progress "NockApp built successfully."
+    else
+        print_message "$RED" "❌  Build completed but binaries not found. Check build logs for details."
+        exit 1
     fi
-    complete_progress "NockApp built successfully."
 }
 
 # ----------------------------
@@ -274,25 +293,24 @@ build_project() {
 run_nockapp() {
     print_message "$ORANGE" "🚀 Running the NockApp binary..."
 
-    if [ -d "choo" ]; then
+    if [ -f "./target/release/http-app" ]; then
+        ./target/release/http-app
+        handle_error $? "Running HTTP-App Binary"
+    elif [ -d "./choo" ]; then
         cd choo || { print_message "$RED" "❌  Failed to navigate to choo directory."; exit 1; }
-        cargo run --release hoon/lib/kernel.hoon &> /dev/null
-        if [ $? -ne 0 ]; then
-            print_message "$RED" "❌  Failed to run the Choo binary."
-            exit 1
-        fi
-    elif [ -f "./target/release/http-app" ]; then
-        ./target/release/http-app &> /dev/null
-        if [ $? -ne 0 ]; then
-            print_message "$RED" "❌  Failed to run the HTTP-App binary."
-            exit 1
-        fi
+        cargo run --release hoon/lib/kernel.hoon
+        handle_error $? "Running Choo Binary"
     else
         print_message "$RED" "⚠️  Neither 'choo' directory nor 'http-app' binary found."
         exit 1
     fi
     complete_progress "NockApp is now running."
 }
+
+# ----------------------------
+# Function: Exit Script on Error
+# ----------------------------
+trap 'echo -e "${RED}❌  An unexpected error occurred. Exiting.${NC}"; exit 1' ERR
 
 # ----------------------------
 # Main Installation Flow
@@ -308,10 +326,7 @@ install_dependencies
 if [ -d "nockapp" ]; then
     print_message "$ORANGE" "🗑️  Removing existing nockapp directory..."
     rm -rf nockapp
-    if [ $? -ne 0 ]; then
-        print_message "$RED" "❌  Failed to remove existing nockapp directory."
-        exit 1
-    fi
+    handle_error $? "Removing old nockapp directory"
     complete_progress "Old nockapp directory removed."
 fi
 
@@ -324,6 +339,7 @@ cd nockapp || { print_message "$RED" "❌  Failed to navigate to nockapp directo
 # Create Cargo.toml if Missing or Empty
 if [ ! -f "Cargo.toml" ] || [ ! -s "Cargo.toml" ]; then
     create_cargo_toml
+    handle_error $? "Creating Cargo.toml"
     complete_progress "Cargo.toml created successfully."
 fi
 
@@ -332,11 +348,8 @@ check_and_create_project_structure
 
 # Install Project Dependencies
 print_message "$ORANGE" "📦 Installing project dependencies..."
-cargo install --path . &> /dev/null
-if [ $? -ne 0 ]; then
-    print_message "$RED" "❌  Failed to install project dependencies."
-    exit 1
-fi
+cargo install --path . &> install.log
+handle_error $? "Installing project dependencies"
 complete_progress "Project dependencies installed successfully."
 
 # Build the Project
