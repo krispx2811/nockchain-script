@@ -203,27 +203,9 @@ install_build_essential() {
 # ----------------------------
 # Function: Create Cargo.toml
 # ----------------------------
+# Removed to prevent overwriting existing workspace manifest
 create_cargo_toml() {
-    print_message "$ORANGE" "📄 Creating Cargo.toml..."
-    cat <<EOL > Cargo.toml
-[package]
-name = "nockapp"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-crown = "0.1.0"
-sword = "0.1.0"
-
-[[bin]]
-name = "choo"
-path = "src/bin/choo.rs"
-
-[[bin]]
-name = "http-app"
-path = "src/bin/http_app.rs"
-EOL
-    handle_error $? "Creating Cargo.toml"
+    print_message "$ORANGE" "📄 Skipping Cargo.toml creation to preserve existing workspace configuration."
 }
 
 # ----------------------------
@@ -232,33 +214,46 @@ EOL
 check_and_create_project_structure() {
     print_message "$ORANGE" "🔧 Checking project structure..."
 
-    if [ ! -d "src/bin" ]; then
-        mkdir -p src/bin
-        handle_error $? "Creating directory src/bin"
-        complete_progress "Created directory src/bin."
-    fi
+    # Assuming that workspace members have their own directories and Cargo.toml files
+    declare -a members=("crown" "apps/choo" "apps/http-app" "apps/test-app")
 
-    if [ ! -f "src/bin/choo.rs" ]; then
-        print_message "$ORANGE" "📄 Creating choo.rs..."
-        cat <<EOL > src/bin/choo.rs
+    for member in "${members[@]}"; do
+        if [ ! -d "$member" ]; then
+            mkdir -p "$member"
+            handle_error $? "Creating directory $member"
+            complete_progress "Created directory $member."
+        fi
+
+        # Check for Cargo.toml in each member
+        if [ ! -f "$member/Cargo.toml" ]; then
+            print_message "$ORANGE" "📄 Creating Cargo.toml for $member..."
+            cat <<EOL > "$member/Cargo.toml"
+[package]
+name = "$(basename "$member")"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Add dependencies specific to $member here
+EOL
+            handle_error $? "Creating Cargo.toml for $member"
+            complete_progress "Cargo.toml for $member created successfully."
+        fi
+
+        # Check for main.rs or lib.rs as per binary type
+        # Assuming binaries have main.rs
+        if [ ! -f "$member/src/main.rs" ]; then
+            mkdir -p "$member/src"
+            print_message "$ORANGE" "📄 Creating main.rs for $member..."
+            cat <<EOL > "$member/src/main.rs"
 fn main() {
-    println!("Running the NockApp Choo binary...");
+    println!("Running the NockApp $(basename "$member") binary...");
 }
 EOL
-        handle_error $? "Creating choo.rs"
-        complete_progress "choo.rs created successfully."
-    fi
-
-    if [ ! -f "src/bin/http_app.rs" ]; then
-        print_message "$ORANGE" "📄 Creating http_app.rs..."
-        cat <<EOL > src/bin/http_app.rs
-fn main() {
-    println!("Running the NockApp HTTP App binary...");
-}
-EOL
-        handle_error $? "Creating http_app.rs"
-        complete_progress "http_app.rs created successfully."
-    fi
+            handle_error $? "Creating main.rs for $member"
+            complete_progress "main.rs for $member created successfully."
+        fi
+    done
 }
 
 # ----------------------------
@@ -279,7 +274,7 @@ build_project() {
     cargo build --release
     handle_error $? "Building NockApp"
 
-    # Check if build succeeded by verifying the binary exists
+    # Check if build succeeded by verifying the binaries exist
     if [ -f "./target/release/http-app" ] || [ -f "./target/release/choo" ]; then
         complete_progress "NockApp built successfully."
     else
@@ -295,16 +290,35 @@ run_nockapp() {
     print_message "$ORANGE" "🚀 Running the NockApp binary..."
 
     if [ -f "./target/release/http-app" ]; then
-        ./target/release/http-app
-        handle_error $? "Running HTTP-App Binary"
+        # Run the binary in the background
+        ./target/release/http-app &
+        APP_PID=$!
+        sleep 2  # Allow some time for the binary to start
+        if ps -p $APP_PID > /dev/null; then
+            complete_progress "NockApp is now running with PID $APP_PID."
+            echo "NockApp is running in the background with PID $APP_PID."
+            echo "You can stop it by running: kill $APP_PID"
+        else
+            print_message "$RED" "❌  Failed to run the HTTP-App binary."
+            exit 1
+        fi
     elif [ -f "./target/release/choo" ]; then
-        ./target/release/choo
-        handle_error $? "Running Choo Binary"
+        # Run the binary in the background
+        ./target/release/choo &
+        APP_PID=$!
+        sleep 2  # Allow some time for the binary to start
+        if ps -p $APP_PID > /dev/null; then
+            complete_progress "NockApp is now running with PID $APP_PID."
+            echo "NockApp is running in the background with PID $APP_PID."
+            echo "You can stop it by running: kill $APP_PID"
+        else
+            print_message "$RED" "❌  Failed to run the Choo binary."
+            exit 1
+        fi
     else
         print_message "$RED" "⚠️  Neither 'http-app' nor 'choo' binary found."
         exit 1
     fi
-    complete_progress "NockApp is now running."
 }
 
 # ----------------------------
@@ -348,8 +362,7 @@ check_and_create_project_structure
 
 # Install Project Dependencies
 print_message "$ORANGE" "📦 Installing project dependencies..."
-# Note: Assuming dependencies are managed via Cargo.toml, so no additional steps here.
-# If there are specific dependency installation steps, they should be added here.
+# Assuming dependencies are managed via Cargo.toml, no additional commands needed here.
 
 # Build the Project
 build_project
