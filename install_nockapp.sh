@@ -21,22 +21,28 @@ read -rp "Enter follower UDP port [3006]: " FOLLOWER_PORT
 FOLLOWER_PORT="${FOLLOWER_PORT:-3006}"
 
 # 2) Fresh clone nockchain
-echo "🌱 Cloning fresh nockchain repo…"
+echo "🌱 Removing any old nockchain/ and cloning fresh…"
 rm -rf nockchain
 git clone https://github.com/zorp-corp/nockchain.git
-cd nockchain
 
-# 3) Install choo (Hoon compiler)
+# 3) Install choo & build inside nockchain/
+pushd nockchain >/dev/null
+
 echo "🔧 Installing choo via Makefile…"
 make install-choo
 
-# 4) Build Hoon artifacts and Rust binary
-echo "🛠️  Building Hoon and nockchain…"
+echo "🛠️  Building Hoon artifacts…"
 make build-hoon-all
+
+echo "🛠️  Building Rust binary…"
 make build
 
-# 5) Launch follower node
-echo "🚀 Launching follower on UDP port ${FOLLOWER_PORT}, peering to leader:${LEADER_PORT}"
+popd >/dev/null
+
+# 4) Launch follower node
+echo "🚀 Starting follower on UDP port ${FOLLOWER_PORT}, peering to leader:${LEADER_PORT}"
+pushd nockchain >/dev/null
+
 RUST_BACKTRACE=1 cargo run --release --bin nockchain -- \
   --fakenet \
   --genesis-watcher \
@@ -46,3 +52,5 @@ RUST_BACKTRACE=1 cargo run --release --bin nockchain -- \
   --peer "/ip4/127.0.0.1/udp/${LEADER_PORT}/quic-v1" \
   --new-peer-id \
   --no-default-peers
+
+popd >/dev/null
