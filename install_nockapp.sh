@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 0) Prerequisites
+# 0) Make sure Cargo-installed binaries (like choo) are on PATH
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# 1) Prerequisites
 for cmd in git make cargo; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "Error: '$cmd' is not installed." >&2
@@ -9,7 +12,7 @@ for cmd in git make cargo; do
   fi
 done
 
-# 1) Prompt for mining pubkey & ports
+# 2) Prompt for mining pubkey & ports
 DEFAULT_PUBKEY="EHmKL2U3vXfS5GYAY5aVnGdukfDWwvkQPCZXnjvZVShsSQi3UAuA4tQQpVwGJMzc9FfpTY8pLDkqhBGfWutiF4prrCktUH9oAWJxkXQBzAavKDc95NR3DjmYwnnw8GuugnK"
 read -rp "Enter your mining pubkey (or leave blank for default): " MINING_PUBKEY
 MINING_PUBKEY="${MINING_PUBKEY:-$DEFAULT_PUBKEY}"
@@ -20,27 +23,27 @@ LEADER_PORT="${LEADER_PORT:-3005}"
 read -rp "Enter follower UDP port [3006]: " FOLLOWER_PORT
 FOLLOWER_PORT="${FOLLOWER_PORT:-3006}"
 
-# 2) Fresh clone nockchain
-echo "🌱 Removing any old nockchain/ and cloning fresh…"
+# 3) Fresh clone of nockchain
+echo "🌱 Removing old nockchain/ and cloning fresh…"
 rm -rf nockchain
 git clone https://github.com/zorp-corp/nockchain.git
 
-# 3) Install choo & build inside nockchain/
+# 4) Install choo & build inside nockchain/
 pushd nockchain >/dev/null
 
-echo "🔧 Installing choo via Makefile…"
+echo "🔧 Running make install-choo…"
 make install-choo
 
-echo "🛠️  Building Hoon artifacts…"
+echo "🛠️  Running make build-hoon-all…"
 make build-hoon-all
 
-echo "🛠️  Building Rust binary…"
+echo "🛠️  Running make build…"
 make build
 
 popd >/dev/null
 
-# 4) Launch follower node
-echo "🚀 Starting follower on UDP port ${FOLLOWER_PORT}, peering to leader:${LEADER_PORT}"
+# 5) Launch follower node
+echo "🚀 Launching follower on UDP port ${FOLLOWER_PORT}, peering to leader:${LEADER_PORT}"
 pushd nockchain >/dev/null
 
 RUST_BACKTRACE=1 cargo run --release --bin nockchain -- \
