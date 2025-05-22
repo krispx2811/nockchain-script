@@ -15,4 +15,4 @@ tmux new-session -d -s nock-miner \
   "cd ~/nockchain && ./target/release/nockchain --mining-pubkey $PUBKEY --mine"
 
 echo "✅ Started! Attach to it with:"
-echo "    tmux attach -t $SESSION"
+echo "    tmux attach -t nock-miner
