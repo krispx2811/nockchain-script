@@ -13,3 +13,6 @@ ls ~/nockchain/target/release/nockchain
 # launch in tmux
 tmux new-session -d -s nock-miner \
   "cd ~/nockchain && ./target/release/nockchain --mining-pubkey $PUBKEY --mine"
+
+echo "✅ Started! Attach to it with:"
+echo "    tmux attach -t $SESSION"
