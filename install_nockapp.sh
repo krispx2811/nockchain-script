@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
 set -e
 
-# ← ONLY change this:
+# Wallet public key (your miner identity)
 PUBKEY="2qLyi7jNWFsYhFcUe25odS9uHRq9sjkvkcmyrJUWGPiAX1W3CWe3JqKFP3PTjWfNQrjjrckRqPAAwuAxtGDuD7nLomM46Wdw6mNoZdJwPa8gz77Au7Xffpu9R1NvrGCrsnm6"
 
-# name of your tmux session
-SESSION="nock-miner"
+# Name of your tmux session
+SESSION="nock-miner-node"
 
-# kill old session if it exists
+# Clean and prep
+mkdir -p ~/nockchain/miner-node
+cd ~/nockchain/miner-node
+rm -f nockchain.sock
+
+# Kill old session if it exists
 tmux kill-session -t "$SESSION" 2>/dev/null || true
 
-# verify the binary is there
-ls ~/nockchain/target/release/nockchain
-
-# launch miner in tmux
+# Start a new tmux session that builds + runs nockchain
 tmux new-session -d -s "$SESSION" \
-  "cd ~/nockchain && ./target/release/nockchain --mining-pubkey $PUBKEY --mine"
+  'cd ~/nockchain && RUST_BACKTRACE=1 cargo run --release --bin nockchain -- \
+   --npc-socket miner-node/nockchain.sock \
+   --mining-pubkey '"$PUBKEY"' \
+   --bind /ip4/0.0.0.0/udp/3006/quic-v1 \
+   --mine'
 
-echo "✅ Started! Attach to it with:"
-echo "    tmux attach -t $SESSION"
+echo "✅ Miner started in tmux session: $SESSION"
+echo "👉 Attach with:  tmux attach -t $SESSION"
