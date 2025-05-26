@@ -15,13 +15,13 @@ rm -f nockchain.sock
 # Kill old session if it exists
 tmux kill-session -t "$SESSION" 2>/dev/null || true
 
-# Start a new tmux session that builds + runs nockchain, filtered by grep
+# Start a new tmux session, running filtered output via bash -c
 tmux new-session -d -s "$SESSION" \
-  'cd ~/nockchain && RUST_BACKTRACE=1 cargo run --release --bin nockchain -- \
-   --npc-socket miner-node/nockchain.sock \
-   --mining-pubkey '"$PUBKEY"' \
-   --bind /ip4/0.0.0.0/udp/3006/quic-v1 \
-   --mine | grep -aE "serf|panic|mining|candidate|validated"'
+  "bash -c 'cd ~/nockchain && RUST_BACKTRACE=1 cargo run --release --bin nockchain -- \
+    --npc-socket miner-node/nockchain.sock \
+    --mining-pubkey \"$PUBKEY\" \
+    --bind /ip4/0.0.0.0/udp/3006/quic-v1 \
+    --mine | grep -aE \"serf|panic|mining|candidate|validated\"'"
 
 echo "✅ Miner started in tmux session: $SESSION"
 echo "👉 Attach with:  tmux attach -t $SESSION"
